@@ -1,0 +1,91 @@
+Overview
+========
+
+Some applications may need their own 'macro' language. For example,
+in wiki application would be nice to have something like that:
+
+    { table_of_contents } or { toc }
+    
+    or
+    
+    { sub_pages }
+    
+    or
+    
+    { attachments }
+    
+    or
+    
+    { rss http://somesite/rss/feed }
+
+So, user will be able edit text and insert automatically
+generated blocks.
+
+This application allows to define such kind of custom
+macros.
+
+Installation
+============
+
+Add 'django_autotext' to INSTALLED_APPS:
+
+    INSTALLED_APPS = (
+        # ...
+        'django_autotext',
+    )
+
+Usage
+=====
+
+Basic usage
+-----------
+
+Assume we have in template:
+
+    {{ page.text }}
+
+And we want to enable macros in {{ page.text }}, so we
+should wrap it:
+
+    {% load autotext %}
+    {% autotext %}{{ page.text }}{% endautotext %}
+
+That's it! How to define your macros - see example below.
+
+Extra features
+--------------
+
+You may split text by special splitter, by default '(+++ read more...)'.
+See example on usage below.
+
+You may define custom splitter in settings:
+
+AUTOTEXT_EXPAND_OPEN = '[==='   # default is '(+++'
+AUTOTEXT_EXPAND_CLOSE = ']'     # default is ')'
+
+Example: defining macro
+-----------------------
+
+    from django_autotext import formatter
+    
+    def username_macro(context, *args, **kwargs):
+        return context['user'].username
+    formatter.add_macro('username', username_macro)
+
+Example: processing text
+------------------------
+
+    from django_autotext import formatter
+    
+    formatter.run(text)
+
+Example: processing text in template
+------------------------------------
+
+    {% load autotext %}
+    
+    {# full text #}
+    {% autotext %}{{ content }}{% endautotext %}
+    
+    {# shorten text with read more link #}
+    {% autotext %}{{ content }}{% expandlink %}<a href="[expand url]">{{ expandlink }}</a>{% autotext %}
