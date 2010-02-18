@@ -49,7 +49,7 @@ def run(text, context={}):
     return _formatter.run(text, context)
 
 macro_re = re.compile(r'{([^}]+)}')
-macro_args_re = re.compile(r'\s*[^=]+=')
+macro_kwarg_re = re.compile(r'\s*[^=]+=')
 space_re = re.compile(r'\s+')
 
 class Formatter(object):
@@ -82,13 +82,16 @@ class Formatter(object):
         largs, kwargs = [], {}
         if args:
             for arg in re.split(r'(?<!\\),', args):
-                arg = arg.replace(r'\,', ',')
-                m = macro_args_re.match(arg)
-                if m:
-                    kw = str(arg[:m.end()-1].strip())
-                    kwargs[kw] = arg[m.end():]
+                arg = arg.replace(r'\,', ',').strip()
+                if arg[0] == arg[-1] and arg[0] in ('"', "'"):
+                    largs.append(arg[1:-1])
                 else:
-                    largs.append(arg)
+                    kwarg_match = macro_kwarg_re.match(arg)
+                    if kwarg_match:
+                        kw = str(arg[:kwarg_match.end()-1].strip())
+                        kwargs[kw] = arg[kwarg_match.end():]
+                    else:
+                        largs.append(arg)
         return largs, kwargs
     
     def _expand_macro(self, match, context):
